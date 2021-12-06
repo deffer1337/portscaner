@@ -1,6 +1,7 @@
 import socket
 import selectors
 import time
+import sys
 from random import randint
 from typing import Tuple, Set, List
 
@@ -18,9 +19,18 @@ class TcpPortScanner(BaseScanner):
         :param timeout: Timeout waiting for a response from (ip, port)
         """
         super().__init__(ip, ports, timeout)
-        self._tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
+        self._tcp_socket = self._create_raw_tcp_socket()
         self._tcp_socket.setblocking(False)
         self._answer = set()
+
+    def _create_raw_tcp_socket(self):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
+        except PermissionError as e:
+            print('You need to run portscan with elevated privileges. In Linux run portscan with sudo.')
+            sys.exit()
+
+        return sock
 
     def _write_package(self, sock: selectors.SelectorKey.fileobj):
         if len(self._ports) > 0:
