@@ -19,6 +19,17 @@ def add_data_to_console_column_ui(console_ui, transport_protocol, get_protocol_f
         console_ui.add_value_to_column('PROTOCOL', protocol)
 
 
+def add_filtered_udp_ports_to_console_column_ui_if_open(console_ui, transport_protocol, get_protocol_func,
+                                                        port_scan_args, port, t=''):
+    protocol = get_protocol_func(port, port_scan_args.ip)
+    if protocol:
+        console_ui.add_value_to_column('TCP|UDP', transport_protocol)
+        console_ui.add_value_to_column('PORT', port)
+        if port_scan_args.verbose:
+            console_ui.add_value_to_column('[TIME, ms]', t)
+        console_ui.add_value_to_column('PROTOCOL', protocol)
+
+
 def get_args():
     port_scan_argument_parser = PortScanArgumentParser(sys.argv[1:])
     try:
@@ -45,9 +56,15 @@ def start_portscanner():
         console_ui.add_column('PROTOCOL')
 
     if 'udp' in port_scan_args.ports:
-        udp_ports = UdpPortScanner(port_scan_args.ip, port_scan_args.ports['udp'], port_scan_args.timeout).start_scan()
-        for port in udp_ports:
+        filtered_ports, open_ports = UdpPortScanner(port_scan_args.ip, port_scan_args.ports['udp'],
+                                                    port_scan_args.timeout).start_scan()
+        for port in open_ports:
             add_data_to_console_column_ui(console_ui, 'UDP', get_protocols_to_udp_port, port_scan_args, port)
+
+        if port_scan_args.guess:
+            for port in filtered_ports:
+                add_filtered_udp_ports_to_console_column_ui_if_open(console_ui, 'UDP', get_protocols_to_udp_port,
+                                                                    port_scan_args, port)
 
     if 'tcp' in port_scan_args.ports:
         tcp_ports = TcpPortScanner(port_scan_args.ip, port_scan_args.ports['tcp'], port_scan_args.timeout).start_scan()

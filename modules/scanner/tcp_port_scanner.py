@@ -27,7 +27,7 @@ class TcpPortScanner(BaseScanner):
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
         except PermissionError as e:
-            print('You need to run portscan with elevated privileges. In Linux run portscan with sudo.')
+            print('You requested a scan type which requires root privileges.')
             sys.exit()
 
         return sock

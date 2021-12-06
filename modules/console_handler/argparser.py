@@ -94,7 +94,7 @@ class PortScanArgumentParser:
                              'with a value from 0 to 255, separated by dots.')
 
         if not ping(parameters.ip):
-            raise ValueError(f'Host {parameters.ip} seems down.')
+            raise ValueError(f'Host {parameters.ip} seems down. Try again if it doesn"t')
 
         for port in parameters.ports:
             if not self._is_correct_port(port):
