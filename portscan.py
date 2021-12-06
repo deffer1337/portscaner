@@ -35,7 +35,7 @@ def start_portscanner():
     console_ui = ConsoleUI()
     port_scan_args = get_args()
 
-    console_ui.add_start_msg('Starting portscan\n')
+    console_ui.add_start_msg(f'Starting portscan for ip {port_scan_args.ip}\n')
     console_ui.add_column('TCP|UDP')
     console_ui.add_column('PORT')
     if port_scan_args.verbose:

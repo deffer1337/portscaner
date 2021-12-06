@@ -20,6 +20,7 @@ class TcpPortScanner(BaseScanner):
         super().__init__(ip, ports, timeout)
         self._tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
         self._tcp_socket.setblocking(False)
+        self._answer = set()
 
     def _write_package(self, sock: selectors.SelectorKey.fileobj):
         if len(self._ports) > 0:

@@ -16,7 +16,11 @@ def is_http_protocol_on_port(ip: str, port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((ip, port))
         sock.send(_HTTP_REQUESTS)
-        data = sock.recv(1024)
+        try:
+            data = sock.recv(1024)
+        except ConnectionResetError:
+            return False
+
         return data.decode().find('HTTP') != -1
 
 
@@ -28,8 +32,13 @@ def is_echo_protocol_on_udp_port(ip: str, port: int) -> bool:
     :param port: Port on udp
     """
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.settimeout(0.5)
         sock.sendto(b'echo', (ip, port))
-        data = sock.recv(1024)
+        try:
+            data = sock.recv(1024)
+        except socket.timeout:
+            return False
+
         return data == b'echo'
 
 
@@ -42,8 +51,13 @@ def is_echo_protocol_on_tcp_port(ip: str, port: int) -> bool:
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((ip, port))
+        sock.settimeout(2)
         sock.send(b'echo')
-        data = sock.recv(1024)
+        try:
+            data = sock.recv(1024)
+        except socket.timeout:
+            return False
+
         return data == b'echo'
 
 
@@ -55,8 +69,13 @@ def is_dns_protocol_on_port_udp(ip: str, port: int) -> bool:
     :param port: Port on udp
     """
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.settimeout(0.5)
         sock.sendto(_DNS_PACKAGE, (ip, port))
-        data = sock.recv(1024)
+        try:
+            data = sock.recv(2048)
+        except socket.timeout:
+            return False
+
         return data == _DNS_RESPONSE_PACKAGE
 
 
@@ -70,7 +89,11 @@ def is_dns_protocol_on_port_tcp(ip: str, port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((ip, port))
         sock.send(_DNS_PACKAGE)
-        data = sock.recv(1024)
+        try:
+            data = sock.recv(1024)
+        except ConnectionResetError:
+            return False
+
         return data == _DNS_RESPONSE_PACKAGE
 
 
