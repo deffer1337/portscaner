@@ -1,6 +1,7 @@
 import socket
 import selectors
 import time
+import sys
 from typing import Set, List
 
 from modules.scanner.base_scanner import BaseScanner
@@ -11,11 +12,20 @@ class UdpPortScanner(BaseScanner):
     def __init__(self, ip: str, ports: Set[int], timeout: float):
         super().__init__(ip, ports, timeout)
         self._udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        self._icmp_socket = self._create_raw_icmp_socket()
         self._udp_socket.setblocking(False)
         self._icmp_socket.setblocking(False)
         self._closed_ports = set()
         self._answer = ports.copy()
+
+    def _create_raw_icmp_socket(self):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        except PermissionError as e:
+            print('You need to run portscan with elevated privileges. In Linux run portscan with sudo.')
+            sys.exit()
+
+        return sock
 
     def _read_package(self, sock: selectors.SelectorKey.fileobj):
         data, address = sock.recvfrom(1024)
